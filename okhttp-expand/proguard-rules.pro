@@ -20,14 +20,14 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 #okhttp
--dontwarn okhttp3.**
--keep class okhttp3.**{*;}
-#okio
--dontwarn okio.**
--keep class okio.**{*;}
-
--keep class com.cjf.okhttp_expand.constant.** { *; }
--keep class com.cjf.okhttp_expand.convert.** { *; }
--keep class com.cjf.okhttp_expand.entities.** { *; }
--keep class com.cjf.okhttp_expand.exception.** { *; }
--keep class com.cjf.okhttp_expand.function.** { *; }
+#-dontwarn okhttp3.**
+#-keep class okhttp3.**{*;}
+##okio
+#-dontwarn okio.**
+#-keep class okio.**{*;}
+#
+#-keep class com.cjf.okhttp_expand.constant.** { *; }
+#-keep class com.cjf.okhttp_expand.convert.** { *; }
+#-keep class com.cjf.okhttp_expand.entities.** { *; }
+#-keep class com.cjf.okhttp_expand.exception.** { *; }
+#-keep class com.cjf.okhttp_expand.function.** { *; }

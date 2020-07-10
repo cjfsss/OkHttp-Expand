@@ -1,4 +1,4 @@
-package com.cjf.okhttp_expand.network;
+package com.cjf.http.network;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.TelephonyManager;
+
+import androidx.annotation.Keep;
 
 
 /**
@@ -26,6 +28,7 @@ public class NetworkChecker {
         int Mobile2G = 4;
         int Mobile3G = 5;
         int Mobile4G = 6;
+        int Mobile5G = 7;
     }
 
     private ConnectivityManager mManager;
@@ -84,6 +87,13 @@ public class NetworkChecker {
     }
 
     /**
+     * 5G Mobile Internet connection.
+     */
+    public final boolean isMobile5GConnected() {
+        return isAvailable(NetType.Mobile5G);
+    }
+
+    /**
      * According to the different type of network to determine whether the network connection.
      */
     public final  boolean isAvailable(int netType) {
@@ -120,6 +130,10 @@ public class NetworkChecker {
             case NetType.Mobile4G: {
                 if (!isConnected(NetType.Mobile, networkInfo)) return false;
                 return isMobileSubType(NetType.Mobile4G, networkInfo);
+            }
+            case NetType.Mobile5G: {
+                if (!isConnected(NetType.Mobile, networkInfo)) return false;
+                return isMobileSubType(NetType.Mobile5G, networkInfo);
             }
         }
         return false;
@@ -158,6 +172,8 @@ public class NetworkChecker {
             case TelephonyManager.NETWORK_TYPE_LTE: {
                 return netType == NetType.Mobile4G;
             }
+            case TelephonyManager.NETWORK_TYPE_NR:
+                return netType == NetType.Mobile5G;
             default: {
                 String subtypeName = networkInfo.getSubtypeName();
                 if (subtypeName.equalsIgnoreCase("TD-SCDMA")
