@@ -63,7 +63,6 @@ public final class OkHttpFactory implements Network,
     }
 
     @NonNull
-
     public static OkHttpFactory getInstance() {
         return OkHttpFactoryHolder.getSingletonManager();
     }
@@ -85,14 +84,12 @@ public final class OkHttpFactory implements Network,
     }
 
     @NonNull
-
     public OkHttpFactory init(@NonNull final ContextFunction contextFunction) {
         mContextFunction = contextFunction;
         return this;
     }
 
     @NonNull
-
     public OkHttpFactory init(@NonNull final ContextFunction contextFunction,
             @NonNull final OnHttpInterceptorFunction onHttpInterceptor) {
         mContextFunction = contextFunction;
@@ -101,7 +98,6 @@ public final class OkHttpFactory implements Network,
     }
 
     @NonNull
-
     public OkHttpFactory init(@NonNull final ContextFunction contextFunction,
             @NonNull final OnHttpInterceptorFunction onHttpInterceptor,
             @NonNull final OkHttpClientBuilderFunction function) {
@@ -112,27 +108,23 @@ public final class OkHttpFactory implements Network,
     }
 
     @NonNull
-
     public OkHttpFactory setEncrypt(@NonNull EncryptFunction encryptFunction) {
         mEncryptFunction = encryptFunction;
         return this;
     }
 
     @NonNull
-
     public OkHttpFactory interceptor(@NonNull final OnHttpInterceptorFunction onHttpInterceptor) {
         mOnHttpInterceptor = onHttpInterceptor;
         return this;
     }
 
     @NonNull
-
     public OkHttpClient getOkHttpClient() {
         return getOkHttpClient(mOkHttpClientBuilderFunction);
     }
 
     @NonNull
-
     public OkHttpClient getOkHttpClient(@Nullable OkHttpClientBuilderFunction function) {
         if (function == null) {
             function = mOkHttpClientBuilderFunction = new OkHttpClientBuilderFunction() {
@@ -185,9 +177,7 @@ public final class OkHttpFactory implements Network,
                       .retryOnConnectionFailure(false);
     }
 
-
     @NonNull
-
     public Application getApplication() {
         if (mContextFunction == null) {
             throw new OkHttpNullException("ContextFunction must be not null");
@@ -235,7 +225,6 @@ public final class OkHttpFactory implements Network,
      * @return
      */
     @NonNull
-
     public Network getNetWork() {
         if (mContextFunction == null) {
             throw new OkHttpNullException("ContextFunction must be not null");
@@ -251,7 +240,6 @@ public final class OkHttpFactory implements Network,
      *
      * @return true 连通
      */
-
     public boolean isNetAvailable() {
         return getNetWork().isNetAvailable();
     }
@@ -273,7 +261,6 @@ public final class OkHttpFactory implements Network,
         }
     }
 
-
     public void onDestroy() {
         if (mNetWork != null) {
             mNetWork.onDestroy();
@@ -284,7 +271,6 @@ public final class OkHttpFactory implements Network,
      * 2      * 判断当前应用是否是debug状态
      * 3
      */
-
     public boolean isApkInDebug() {
         try {
             @NonNull final ApplicationInfo info = getApplication().getApplicationInfo();
