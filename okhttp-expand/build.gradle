@@ -1,4 +1,6 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 29
@@ -34,6 +36,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.squareup.okhttp3:okhttp:4.7.2'
     implementation 'androidx.annotation:annotation:1.1.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 apply plugin: 'maven'
@@ -43,9 +46,9 @@ uploadArchives {
         mavenDeployer {
 //        repository(url: uri('../aar'))
             repository(url: mavens.localUrl)
-            pom.groupId = mavens.groupId
-            pom.artifactId = mavens.model.artifactId
-            pom.version = mavens.model.version
+            pom.groupId = "com.cjf"
+            pom.artifactId = "OkHttp-Expand"
+            pom.version = "2.1.0"
 
         }
     }

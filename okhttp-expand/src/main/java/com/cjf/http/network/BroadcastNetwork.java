@@ -11,7 +11,6 @@ import android.net.wifi.WifiManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-
 import com.cjf.http.function.ContextFunction;
 
 import java.util.ArrayList;
@@ -58,6 +57,11 @@ public class BroadcastNetwork implements Network,
     }
 
     @Override
+    public void setCheckNetType(NetworkType netType) {
+        mReceiver.mNetType = netType;
+    }
+
+    @Override
     public void addNetWorkChangedListener(@NonNull final OnNetWorkChangedListener listener) {
         if (mReceiver.mOnNetWorkChangedListeners == null) {
             mReceiver.mOnNetWorkChangedListeners = new ArrayList<>();
@@ -99,6 +103,7 @@ public class BroadcastNetwork implements Network,
         @NonNull
         private final NetworkChecker mChecker;
         private boolean mAvailable;
+        private NetworkType mNetType = NetworkType.Default;
         @Nullable
         private List<OnNetWorkChangedListener> mOnNetWorkChangedListeners;
 
@@ -110,7 +115,11 @@ public class BroadcastNetwork implements Network,
 
         @Override
         public void onReceive(@NonNull Context context, final Intent intent) {
-            mAvailable = mChecker.isAvailable();
+            if (NetworkType.Default.equals(mNetType)) {
+                mAvailable = mChecker.isAvailable();
+            } else {
+                mAvailable = mChecker.isAvailable(mNetType.getType());
+            }
             if (mOnNetWorkChangedListeners == null) {
                 return;
             }

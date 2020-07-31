@@ -4,10 +4,8 @@ import android.app.Application;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
 
-import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 
 import com.cjf.http.encrypt.EncryptFunction;
 import com.cjf.http.exception.OkHttpNullException;
@@ -19,10 +17,12 @@ import com.cjf.http.interceptor.EncryptInterceptor;
 import com.cjf.http.interceptor.HttpLoggingInterceptor;
 import com.cjf.http.network.BroadcastNetwork;
 import com.cjf.http.network.Network;
+import com.cjf.http.network.NetworkType;
 import com.cjf.http.network.OnNetWorkChangedListener;
 import com.cjf.http.ssl.SSLSocketFactoryImpl;
 import com.cjf.http.ssl.X509TrustManagerImpl;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -30,8 +30,13 @@ import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Dispatcher;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * <p>Title: OkHttpFactory </p>
@@ -44,10 +49,8 @@ import okhttp3.OkHttpClient;
  */
 public final class OkHttpFactory implements Network,
                                             ContextFunction {
-
     @Nullable
     private Network mNetWork;
-
     @Nullable
     private OnHttpInterceptorFunction mOnHttpInterceptor;
     @Nullable
@@ -146,12 +149,12 @@ public final class OkHttpFactory implements Network,
     @NonNull
     private OkHttpClient.Builder getOkHttpClientBuilder() {
         @NonNull final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        @Nullable final Interceptor encryptFunction = getEncryptFunction();
+        @Nullable final Interceptor encryptInterceptor = getEncryptInterceptor();
         boolean containEncrypt = true;
         if (mOnHttpInterceptor != null) {
             @Nullable final List<Interceptor> interceptorList = mOnHttpInterceptor.getInterceptorList();
             if (interceptorList != null && !interceptorList.isEmpty()) {
-                containEncrypt = !interceptorList.contains(encryptFunction);
+                containEncrypt = !interceptorList.contains(encryptInterceptor);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     interceptorList.forEach(builder::addInterceptor);
                 } else {
@@ -160,13 +163,14 @@ public final class OkHttpFactory implements Network,
                     }
                 }
             }
+            mOnHttpInterceptor = null;
         }
         if (isApkInDebug()) {
             builder.addInterceptor(getLogInterceptor());
         }
-
-        if (encryptFunction != null && containEncrypt) {
-            builder.addInterceptor(encryptFunction);
+        if (encryptInterceptor != null && containEncrypt) {
+            builder.addInterceptor(encryptInterceptor);
+            mEncryptFunction = null;
         }
         @NonNull final X509TrustManager trustAllCert = new X509TrustManagerImpl();
         @NonNull final SSLSocketFactory sslSocketFactory = new SSLSocketFactoryImpl(trustAllCert);
@@ -178,11 +182,59 @@ public final class OkHttpFactory implements Network,
     }
 
     @NonNull
+    public Call newCall(@NonNull Request request) {
+        return getOkHttpClient().newCall(request);
+    }
+
+    @NonNull
+    public Response execute(@NonNull Request request) throws IOException {
+        return newCall(request).execute();
+    }
+
+    @NonNull
+    public Call execute(@NonNull Request request, @NonNull Callback callback) {
+        @NonNull final Call call = newCall(request);
+        call.enqueue(callback);
+        return call;
+    }
+
+    /**
+     * 取消所有请求
+     */
+    public void cancelAll() {
+        @NonNull final OkHttpClient okHttpClient = getOkHttpClient();
+        okHttpClient.dispatcher().cancelAll();
+    }
+
+    @NonNull
     public Application getApplication() {
         if (mContextFunction == null) {
             throw new OkHttpNullException("ContextFunction must be not null");
         }
         return mContextFunction.getApplication();
+    }
+
+    /**
+     * 根据Tag取消请求
+     */
+    public void cancelTag(Object tag) {
+        if (tag == null) {
+            return;
+        }
+        final OkHttpClient okHttpClient = getOkHttpClient();
+        Dispatcher dispatcher = okHttpClient.dispatcher();
+
+        for (Call call : dispatcher.queuedCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
+            }
+        }
+
+        for (Call call : dispatcher.runningCalls()) {
+            if (tag.equals(call.request().tag())) {
+                call.cancel();
+            }
+        }
     }
 
     /**
@@ -202,7 +254,7 @@ public final class OkHttpFactory implements Network,
     }
 
     @Nullable
-    private Interceptor getEncryptFunction() {
+    private Interceptor getEncryptInterceptor() {
         if (mEncryptFunction == null) {
             return null;
         }
@@ -242,6 +294,11 @@ public final class OkHttpFactory implements Network,
      */
     public boolean isNetAvailable() {
         return getNetWork().isNetAvailable();
+    }
+
+    @Override
+    public void setCheckNetType(NetworkType netType) {
+        getNetWork().setCheckNetType(netType);
     }
 
     @Override

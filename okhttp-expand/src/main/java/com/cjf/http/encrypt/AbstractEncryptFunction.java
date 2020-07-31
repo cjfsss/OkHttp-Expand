@@ -2,12 +2,10 @@ package com.cjf.http.encrypt;
 
 import android.text.TextUtils;
 
-import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-
-import com.cjf.http.exception.OkHttpException;
+import com.cjf.http.exception.OkHttpEncryptBodyException;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -84,45 +82,29 @@ public abstract class AbstractEncryptFunction implements EncryptFunction {
     public Request encryptBody(@NonNull Request request) throws IOException {
         @Nullable final RequestBody requestBody = request.body();
         if (requestBody == null) {
-            throw new OkHttpException("requestBody must be not null");
+            throw new OkHttpEncryptBodyException("requestBody must be not null", request);
         }
-        @NonNull final String method = request.method().toLowerCase().trim();//请求方式例如：get delete put post
+        @NonNull final String method = request.method();//请求方式例如：get delete put post
         //字符集
         @NonNull final Charset charset;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
             charset = StandardCharsets.UTF_8;
         } else {
-            charset = Charset.forName("UTF-8");
+            charset = StandardCharsets.UTF_8;
         }
         // 获取请求的数据
         @NonNull final Buffer buffer = new Buffer();
         requestBody.writeTo(buffer);
         @NonNull final String requestData = URLDecoder.decode(buffer.readString(charset).trim(), "utf-8");
+        buffer.close();
         //这里调用加密的方法，自行修改
         @NonNull final byte[] encryptData = encrypt(requestData);
-        buffer.close();
         //构建新的请求体
         @NonNull final RequestBody newRequestBody = RequestBody.create(encryptData, requestBody.contentType());
         //构建新的requestBuilder
         @NonNull final Request.Builder newRequestBuilder = request.newBuilder();
         //根据请求方式构建相应的请求
-        switch (method) {
-            case "post":
-                newRequestBuilder.post(newRequestBody);
-                break;
-            case "put":
-                newRequestBuilder.put(newRequestBody);
-                break;
-            case "patch":
-                newRequestBuilder.patch(newRequestBody);
-                break;
-            case "delete":
-                newRequestBuilder.delete(newRequestBody);
-                break;
-            default:
-                break;
-        }
-        return newRequestBuilder.build();
+        return newRequestBuilder.method(method, newRequestBody).build();
     }
 
     @Override
@@ -135,9 +117,7 @@ public abstract class AbstractEncryptFunction implements EncryptFunction {
         @Nullable final MediaType mediaType = body.contentType();
         // 解密数据
         byte[] bytes = decrypt(body);
-        return response.newBuilder()
-                .body(ResponseBody.create(bytes, mediaType))
-                .build();
+        return response.newBuilder().body(ResponseBody.create(bytes, mediaType)).build();
     }
 
 
@@ -146,7 +126,8 @@ public abstract class AbstractEncryptFunction implements EncryptFunction {
     public Request encryptUrl(@NonNull Request request) throws IOException {
         @NonNull final HttpUrl url = request.url();
         //  userName=xiaoming&userPassword=12345
-        @Nullable final String requestData = url.encodedQuery();// query 是获取到的拼接字符串 类似 userName=xiaoming&userPassword=12345
+        @Nullable final String requestData = url
+                .encodedQuery();// query 是获取到的拼接字符串 类似 userName=xiaoming&userPassword=12345
         /*如果有请求数据 则加密*/
         if (requestData != null) {
             //http://192.168.3.138:8089/interface/login   //@get @delete 时候需要拼接在请求地址后面  ?userName=xiaoming&userPassword=12345
@@ -175,9 +156,7 @@ public abstract class AbstractEncryptFunction implements EncryptFunction {
         @Nullable final MediaType mediaType = body.contentType();
         // 解密数据
         @NonNull final byte[] bytes = decrypt(body);
-        return response.newBuilder()
-                .body(ResponseBody.create(bytes, mediaType))
-                .build();
+        return response.newBuilder().body(ResponseBody.create(bytes, mediaType)).build();
     }
 
     /**
@@ -187,7 +166,6 @@ public abstract class AbstractEncryptFunction implements EncryptFunction {
      * @return 加密后的数据
      */
     @NonNull
-    
     protected abstract byte[] encrypt(@NonNull final String requestData) throws IOException;
 
     /**
@@ -197,6 +175,5 @@ public abstract class AbstractEncryptFunction implements EncryptFunction {
      * @return 解密后的数据
      */
     @NonNull
-    
     protected abstract byte[] decrypt(@NonNull final ResponseBody body) throws IOException;
 }

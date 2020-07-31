@@ -19,7 +19,7 @@ import androidx.annotation.Keep;
  * @version : 1.0
  * @date : 2019/12/27 16:25
  */
-public class NetworkChecker {
+public final class NetworkChecker {
 
     public interface NetType {
         int Wifi = 1;

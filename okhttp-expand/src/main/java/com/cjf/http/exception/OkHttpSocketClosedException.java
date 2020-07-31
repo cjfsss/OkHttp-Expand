@@ -4,6 +4,9 @@ import androidx.annotation.Keep;
 
 import java.io.IOException;
 
+import okhttp3.Request;
+import okhttp3.Response;
+
 /**
  * <p>Title: SocketClosedException </p>
  * <p>Description:  </p>
@@ -13,17 +16,30 @@ import java.io.IOException;
  * @version : 1.0
  * @date : 2019/12/27 18:04
  */
-public class OkHttpSocketClosedException extends IOException {
+public class OkHttpSocketClosedException extends OkHttpIOException {
 
-    public OkHttpSocketClosedException(String message) {
-        super(message);
+
+    public OkHttpSocketClosedException(String message, Response response) {
+        super(message, response);
     }
 
-    public OkHttpSocketClosedException(String message, Throwable cause) {
-        super(message, cause);
+    public OkHttpSocketClosedException(String message, Response response, Throwable throwable) {
+        super(message, response, throwable);
     }
 
-    public OkHttpSocketClosedException(Throwable cause) {
-        super(cause);
+    public OkHttpSocketClosedException(String message, Response response, String result) {
+        super(message, response, result);
+    }
+
+    public OkHttpSocketClosedException(String message, Response response, Throwable throwable, String result) {
+        super(message, response, throwable, result);
+    }
+
+    public OkHttpSocketClosedException(String message, Request request) {
+        super(message, request);
+    }
+
+    public OkHttpSocketClosedException(String message, Request request, Throwable throwable) {
+        super(message, request, throwable);
     }
 }

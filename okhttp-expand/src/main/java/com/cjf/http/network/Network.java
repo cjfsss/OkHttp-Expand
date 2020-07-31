@@ -1,7 +1,6 @@
 package com.cjf.http.network;
 
 
-import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
 /**
@@ -19,6 +18,8 @@ public interface Network {
      * Check the network is enable.
      */
     boolean isNetAvailable();
+
+    void setCheckNetType(NetworkType netType);
 
     /**
      * 添加网络监听

@@ -5,7 +5,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-
 import com.cjf.http.exception.OkHttpNetworkError;
 import com.cjf.http.exception.OkHttpSocketClosedException;
 import com.cjf.http.network.Network;
@@ -39,13 +38,15 @@ public class ConnectInterceptor implements Interceptor {
     @Override
     public okhttp3.Response intercept(@NonNull final Chain chain) throws IOException {
         final Request request = chain.request();
-        if (!mNetwork.isNetAvailable())
-            throw new OkHttpNetworkError(String.format("Network Unavailable: %1$s.", request.url()));
+        if (!mNetwork.isNetAvailable()) {
+            throw new OkHttpNetworkError(String.format("Network Unavailable: %1$s.", request.url()), request);
+        }
         try {
             return chain.proceed(request);
         } catch (SocketException e) {
             if (TextUtils.equals("Socket closed", e.getMessage())) {
-                throw new OkHttpSocketClosedException(String.format("Socket closed exception: %1$s.", request.url()), e);
+                throw new OkHttpSocketClosedException(String.format("Socket closed exception: %1$s.", request.url()),
+                                                      request, e);
             }
             throw e;
         }

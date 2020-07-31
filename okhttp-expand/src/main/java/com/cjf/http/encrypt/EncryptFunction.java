@@ -19,6 +19,9 @@ import okhttp3.Response;
  */
 public interface EncryptFunction {
 
+    String HEADER_IS_ENCRYPT = "HEADER_IS_ENCRYPT";
+    String HEADER_IS_DECODER = "HEADER_IS_DECODER";
+
     /**
      * 是否进行加密
      *
