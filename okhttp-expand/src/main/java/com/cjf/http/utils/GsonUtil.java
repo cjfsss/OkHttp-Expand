@@ -1,6 +1,8 @@
 package com.cjf.http.utils;
 
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -94,9 +96,20 @@ public class GsonUtil {
         public String deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws
                 JsonParseException {
             if (json instanceof JsonPrimitive) {
-                return json.getAsString();
+                String result = json.getAsString();
+                if (result == null || result.length() == 0 || TextUtils.equals(result, "null") ||
+                    TextUtils.equals(result, "NULL")) {
+                    return "";
+                }
+                return result;
             } else {
-                return json.toString();
+                String result = json.toString();
+                //noinspection ConstantConditions
+                if (result == null || result.length() == 0 || TextUtils.equals(result, "null") ||
+                    TextUtils.equals(result, "NULL")) {
+                    return "";
+                }
+                return result;
             }
         }
 
@@ -112,7 +125,9 @@ public class GsonUtil {
         public Integer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws
                 JsonParseException {
             try {
-                if (json.getAsString().equals("") || json.getAsString().equals("null")) {//定义为int类型,如果后台返回""或者null,则返回0
+                String result = json.getAsString();
+                if (result == null || result.length() == 0 || TextUtils.equals(result, "null") ||
+                    TextUtils.equals(result, "NULL")) {//定义为int类型,如果后台返回""或者null,则返回0
                     return 0;
                 }
             } catch (Exception ignore) {
@@ -136,8 +151,9 @@ public class GsonUtil {
         public Double deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws
                 JsonParseException {
             try {
-                if (json.getAsString().equals("") ||
-                    json.getAsString().equals("null")) {//定义为double类型,如果后台返回""或者null,则返回0.00
+                String result = json.getAsString();
+                if (result == null || result.length() == 0 || TextUtils.equals(result, "null") ||
+                    TextUtils.equals(result, "NULL")) {//定义为double类型,如果后台返回""或者null,则返回0.00
                     return 0.00;
                 }
             } catch (Exception ignore) {
@@ -161,7 +177,9 @@ public class GsonUtil {
         public Long deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws
                 JsonParseException {
             try {
-                if (json.getAsString().equals("") || json.getAsString().equals("null")) {//定义为long类型,如果后台返回""或者null,则返回0
+                String result = json.getAsString();
+                if (result == null || result.length() == 0 || TextUtils.equals(result, "null") ||
+                    TextUtils.equals(result, "NULL")) {//定义为long类型,如果后台返回""或者null,则返回0
                     return 0L;
                 }
             } catch (Exception ignore) {
