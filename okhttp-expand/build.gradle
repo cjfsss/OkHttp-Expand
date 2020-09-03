@@ -48,7 +48,7 @@ uploadArchives {
             repository(url: mavens.localUrl)
             pom.groupId = "com.cjf"
             pom.artifactId = "OkHttp-Expand"
-            pom.version = "2.1.0"
+            pom.version = "2.1.2"
 
         }
     }

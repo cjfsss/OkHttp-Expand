@@ -5,14 +5,18 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
+import com.cjf.http.exception.OkHttpHostException;
 import com.cjf.http.exception.OkHttpNetworkError;
 import com.cjf.http.exception.OkHttpSocketClosedException;
+import com.cjf.http.exception.OkHttpUrlException;
 import com.cjf.http.network.Network;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -49,7 +53,10 @@ public class ConnectInterceptor implements Interceptor {
                                                       request, e);
             }
             throw e;
+        } catch (MalformedURLException e) {
+            throw new OkHttpUrlException(String.format("url error exception: %1$s.", request.url()), request, e);
+        } catch (UnknownHostException e) {
+            throw new OkHttpHostException(String.format("host error exception: %1$s.", request.url()), request, e);
         }
     }
-
 }

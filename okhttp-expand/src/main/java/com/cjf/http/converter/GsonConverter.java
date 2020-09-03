@@ -2,7 +2,6 @@ package com.cjf.http.converter;
 
 import androidx.annotation.NonNull;
 
-import com.cjf.http.extension.OkKt;
 import com.cjf.http.utils.GsonUtil;
 import com.google.gson.Gson;
 
@@ -18,7 +17,7 @@ import java.lang.reflect.Type;
  * @version : 1.0
  * @date : 2020/7/22 10:05
  */
-public class GsonConverter implements IConverter {
+public abstract class GsonConverter implements IConverter {
 
     private final Gson gson;
 
@@ -30,7 +29,8 @@ public class GsonConverter implements IConverter {
         if (gson == null) {
             throw new NullPointerException("gson == null");
         }
-        return new GsonConverter(gson);
+        return new GsonConverter(gson) {
+        };
     }
 
     private GsonConverter(Gson gson) {
