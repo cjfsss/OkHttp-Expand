@@ -4,12 +4,15 @@ package com.cjf.http.interceptor;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.cjf.http.OkHttpPlugins;
 import com.cjf.http.exception.OkHttpHostException;
 import com.cjf.http.exception.OkHttpNetworkError;
 import com.cjf.http.exception.OkHttpSocketClosedException;
 import com.cjf.http.exception.OkHttpUrlException;
 import com.cjf.http.network.Network;
+import com.cjf.http.utils.IOUtils;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +49,14 @@ public class ConnectInterceptor implements Interceptor {
             throw new OkHttpNetworkError(String.format("Network Unavailable: %1$s.", request.url()), request);
         }
         try {
+            // 判断是否可以进行加密
+            @Nullable boolean isEncrypt = OkHttpPlugins.isInterceptorEncrypt();
+            if (isEncrypt) {
+                String body = IOUtils.readRequest(request);
+                String bodyEncrypt = OkHttpPlugins.onResultEncrypt(request, body);
+                Request requestEncrypt = IOUtils.writeRequest(request, bodyEncrypt);
+                return chain.proceed(requestEncrypt);
+            }
             return chain.proceed(request);
         } catch (SocketException e) {
             if (TextUtils.equals("Socket closed", e.getMessage())) {

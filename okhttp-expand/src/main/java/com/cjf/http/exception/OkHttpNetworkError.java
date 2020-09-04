@@ -12,7 +12,7 @@ import okhttp3.Response;
  * @version : 1.0
  * @date : 2019/12/27 18:04
  */
-public class OkHttpNetworkError extends OkHttpIOException {
+public class OkHttpNetworkError extends OkHttpException {
 
     public OkHttpNetworkError(String message, Response response) {
         super(message, response);

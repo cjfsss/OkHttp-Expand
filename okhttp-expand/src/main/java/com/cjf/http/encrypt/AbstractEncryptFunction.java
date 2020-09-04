@@ -5,7 +5,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.cjf.http.exception.OkHttpEncryptBodyException;
+import com.cjf.http.exception.OkHttpEncryptException;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -82,7 +82,7 @@ public abstract class AbstractEncryptFunction implements EncryptFunction {
     public Request encryptBody(@NonNull Request request) throws IOException {
         @Nullable final RequestBody requestBody = request.body();
         if (requestBody == null) {
-            throw new OkHttpEncryptBodyException("requestBody must be not null", request);
+            throw new OkHttpEncryptException("requestBody must be not null", request);
         }
         @NonNull final String method = request.method();//请求方式例如：get delete put post
         //字符集

@@ -8,8 +8,8 @@ android {
 
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 29
+        minSdkVersion 14
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
 
@@ -48,7 +48,7 @@ uploadArchives {
             repository(url: mavens.localUrl)
             pom.groupId = "com.cjf"
             pom.artifactId = "OkHttp-Expand"
-            pom.version = "2.1.2"
+            pom.version = "2.1.3"
 
         }
     }

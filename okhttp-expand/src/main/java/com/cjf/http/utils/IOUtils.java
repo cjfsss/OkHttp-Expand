@@ -4,7 +4,13 @@ import android.os.Build;
 import android.os.StatFs;
 import android.text.TextUtils;
 
-import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.cjf.http.exception.OkHttpDecryptException;
+import com.cjf.http.exception.OkHttpEncryptException;
+import com.cjf.http.exception.OkHttpRequestBodyNullException;
+import com.cjf.http.exception.OkHttpResponseBodyNullException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -27,8 +33,18 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.Buffer;
 
 /**
  * <p>Title: IOUtils </p>
@@ -42,7 +58,9 @@ import java.util.List;
 public class IOUtils {
 
     public static void closeQuietly(Closeable... closeable) {
-        if (closeable == null) return;
+        if (closeable == null) {
+            return;
+        }
         for (Closeable close : closeable) {
             try {
                 close.close();
@@ -53,13 +71,126 @@ public class IOUtils {
     }
 
     public static void flushQuietly(Flushable... flushable) {
-        if (flushable == null) return;
+        if (flushable == null) {
+            return;
+        }
         for (Flushable flush : flushable) {
             try {
                 flush.flush();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * 将请求体转换为字符串
+     *
+     * @param request 请求体
+     */
+    @SuppressWarnings("CharsetObjectCanBeUsed")
+    public static String readRequest(@NonNull Request request) throws IOException {
+        @Nullable final RequestBody requestBody = request.body();
+        if (requestBody == null) {
+            throw new OkHttpRequestBodyNullException("RequestBody must be not null", request);
+        }
+        @Nullable Buffer buffer = null;
+        try {
+            //字符集
+            @NonNull final Charset charset;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                charset = StandardCharsets.UTF_8;
+            } else {
+                charset = Charset.forName("UTF-8");
+            }
+            // 获取请求的数据
+            buffer = new Buffer();
+            requestBody.writeTo(buffer);
+            return URLDecoder.decode(buffer.readString(charset).trim(), "utf-8");
+        } catch (IOException e) {
+            throw new OkHttpEncryptException("Encrypt readRequest error", request, e);
+        } finally {
+            closeQuietly(buffer);
+        }
+    }
+
+    /**
+     * 将字符串写入请求体
+     *
+     * @param request 请求体
+     * @param data    数据
+     */
+    @SuppressWarnings("CharsetObjectCanBeUsed")
+    public static Request writeRequest(@NonNull Request request, @Nullable String data) throws IOException {
+        if (data == null) {
+            return request;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return writeRequest(request, data.getBytes(StandardCharsets.UTF_8));
+        } else {
+            return writeRequest(request, data.getBytes(Charset.forName("UTF-8")));
+        }
+    }
+
+    /**
+     * 将相应体转换为byte数组
+     *
+     * @param response 相应体
+     */
+    public static byte[] readResponse(@NonNull Response response) throws IOException {
+        @Nullable final ResponseBody body = response.body();
+        if (body == null) {
+            throw new OkHttpResponseBodyNullException("ResponseBody must be not null", response);
+        }
+        try {
+            return toByteArray(body.byteStream());
+        } catch (IOException e) {
+            throw new OkHttpDecryptException("Decrypt readResponse error", response, e);
+        }
+    }
+
+    /**
+     * 将相应体转换为byte数组
+     *
+     * @param data 相应体
+     */
+    public static Response writeResponse(@NonNull Response response, @NonNull byte[] data) throws IOException {
+        @Nullable final ResponseBody body = response.body();
+        if (body == null) {
+            return response;
+        }
+        try {
+            @Nullable final MediaType mediaType = body.contentType();
+            return response.newBuilder().body(ResponseBody.create(data, mediaType)).build();
+        } catch (Exception e) {
+            throw new OkHttpDecryptException("Decrypt writeResponse error", response, e);
+        }
+    }
+
+    /**
+     * 将字符串写入请求体
+     *
+     * @param request 请求体
+     * @param data    数据
+     */
+    public static Request writeRequest(@NonNull Request request, @Nullable byte[] data) throws IOException {
+        if (data == null) {
+            return request;
+        }
+        @Nullable final RequestBody requestBody = request.body();
+        if (requestBody == null) {
+            throw new OkHttpEncryptException("requestBody must be not null", request);
+        }
+        try {
+            @NonNull final String method = request.method();//请求方式例如：get delete put post
+            //构建新的请求体
+            @NonNull final RequestBody newRequestBody = RequestBody.create(data, requestBody.contentType());
+            //构建新的requestBuilder
+            @NonNull final Request.Builder newRequestBuilder = request.newBuilder();
+            //根据请求方式构建相应的请求
+            return newRequestBuilder.method(method, newRequestBody).build();
+        } catch (Exception e) {
+            throw new OkHttpEncryptException("Encrypt writeRequest error", request, e);
         }
     }
 
@@ -73,11 +204,13 @@ public class IOUtils {
     }
 
     public static BufferedInputStream toBufferedInputStream(InputStream inputStream) {
-        return inputStream instanceof BufferedInputStream ? (BufferedInputStream) inputStream : new BufferedInputStream(inputStream);
+        return inputStream instanceof BufferedInputStream ? (BufferedInputStream) inputStream :
+                new BufferedInputStream(inputStream);
     }
 
     public static BufferedOutputStream toBufferedOutputStream(OutputStream outputStream) {
-        return outputStream instanceof BufferedOutputStream ? (BufferedOutputStream) outputStream : new BufferedOutputStream(outputStream);
+        return outputStream instanceof BufferedOutputStream ? (BufferedOutputStream) outputStream :
+                new BufferedOutputStream(outputStream);
     }
 
     public static BufferedReader toBufferedReader(Reader reader) {
@@ -135,7 +268,9 @@ public class IOUtils {
     }
 
     public static Object toObject(byte[] input) {
-        if (input == null) return null;
+        if (input == null) {
+            return null;
+        }
         ByteArrayInputStream bais = null;
         ObjectInputStream ois = null;
         try {
@@ -152,13 +287,18 @@ public class IOUtils {
     }
 
     public static byte[] toByteArray(CharSequence input) {
-        if (input == null) return new byte[0];
+        if (input == null) {
+            return new byte[0];
+        }
         return input.toString().getBytes();
     }
 
     public static byte[] toByteArray(CharSequence input, String encoding) throws UnsupportedEncodingException {
-        if (input == null) return new byte[0];
-        else return input.toString().getBytes(encoding);
+        if (input == null) {
+            return new byte[0];
+        } else {
+            return input.toString().getBytes(encoding);
+        }
     }
 
     public static byte[] toByteArray(InputStream input) throws IOException {
@@ -228,45 +368,64 @@ public class IOUtils {
     }
 
     public static void write(byte[] data, OutputStream output) throws IOException {
-        if (data != null) output.write(data);
+        if (data != null) {
+            output.write(data);
+        }
     }
 
     public static void write(byte[] data, Writer output) throws IOException {
-        if (data != null) output.write(new String(data));
+        if (data != null) {
+            output.write(new String(data));
+        }
     }
 
     public static void write(byte[] data, Writer output, String encoding) throws IOException {
-        if (data != null) output.write(new String(data, encoding));
+        if (data != null) {
+            output.write(new String(data, encoding));
+        }
     }
 
     public static void write(char[] data, Writer output) throws IOException {
-        if (data != null) output.write(data);
+        if (data != null) {
+            output.write(data);
+        }
     }
 
     public static void write(char[] data, OutputStream output) throws IOException {
-        if (data != null) output.write(new String(data).getBytes());
+        if (data != null) {
+            output.write(new String(data).getBytes());
+        }
     }
 
     public static void write(char[] data, OutputStream output, String encoding) throws IOException {
-        if (data != null) output.write(new String(data).getBytes(encoding));
+        if (data != null) {
+            output.write(new String(data).getBytes(encoding));
+        }
     }
 
     public static void write(CharSequence data, Writer output) throws IOException {
-        if (data != null) output.write(data.toString());
+        if (data != null) {
+            output.write(data.toString());
+        }
     }
 
     public static void write(CharSequence data, OutputStream output) throws IOException {
-        if (data != null) output.write(data.toString().getBytes());
+        if (data != null) {
+            output.write(data.toString().getBytes());
+        }
     }
 
     public static void write(CharSequence data, OutputStream output, String encoding) throws IOException {
-        if (data != null) output.write(data.toString().getBytes(encoding));
+        if (data != null) {
+            output.write(data.toString().getBytes(encoding));
+        }
     }
 
     public static void write(InputStream inputStream, OutputStream outputStream) throws IOException {
         int len;
         byte[] buffer = new byte[4096];
-        while ((len = inputStream.read(buffer)) != -1) outputStream.write(buffer, 0, len);
+        while ((len = inputStream.read(buffer)) != -1)
+            outputStream.write(buffer, 0, len);
     }
 
     public static void write(Reader input, OutputStream output) throws IOException {
@@ -299,7 +458,8 @@ public class IOUtils {
     public static void write(Reader input, Writer output) throws IOException {
         int len;
         char[] buffer = new char[4096];
-        while (-1 != (len = input.read(buffer))) output.write(buffer, 0, len);
+        while (-1 != (len = input.read(buffer)))
+            output.write(buffer, 0, len);
     }
 
     public static boolean contentEquals(InputStream input1, InputStream input2) throws IOException {
@@ -363,9 +523,11 @@ public class IOUtils {
             e.printStackTrace();
             return 0;
         }
-        if (Build.VERSION.SDK_INT >= 18)
+        if (Build.VERSION.SDK_INT >= 18) {
             return getStatFsSize(stat, "getBlockSizeLong", "getAvailableBlocksLong");
-        else return getStatFsSize(stat, "getBlockSize", "getAvailableBlocks");
+        } else {
+            return getStatFsSize(stat, "getBlockSize", "getAvailableBlocks");
+        }
     }
 
     private static long getStatFsSize(StatFs statFs, String blockSizeMethod, String availableBlocksMethod) {
@@ -427,7 +589,9 @@ public class IOUtils {
      */
     public static boolean createFolder(File targetFolder) {
         if (targetFolder.exists()) {
-            if (targetFolder.isDirectory()) return true;
+            if (targetFolder.isDirectory()) {
+                return true;
+            }
             //noinspection ResultOfMethodCallIgnored
             targetFolder.delete();
         }
@@ -476,7 +640,9 @@ public class IOUtils {
      */
     public static boolean createFile(File targetFile) {
         if (targetFile.exists()) {
-            if (targetFile.isFile()) return true;
+            if (targetFile.isFile()) {
+                return true;
+            }
             delFileOrFolder(targetFile);
         }
         try {
@@ -507,7 +673,9 @@ public class IOUtils {
      * @return True: success, or false: failure.
      */
     public static boolean createNewFile(File targetFile) {
-        if (targetFile.exists()) delFileOrFolder(targetFile);
+        if (targetFile.exists()) {
+            delFileOrFolder(targetFile);
+        }
         try {
             return targetFile.createNewFile();
         } catch (IOException e) {
@@ -523,7 +691,9 @@ public class IOUtils {
      * @see #delFileOrFolder(File)
      */
     public static boolean delFileOrFolder(String path) {
-        if (TextUtils.isEmpty(path)) return false;
+        if (TextUtils.isEmpty(path)) {
+            return false;
+        }
         return delFileOrFolder(new File(path));
     }
 

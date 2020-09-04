@@ -7,7 +7,11 @@ import com.cjf.http.converter.GsonConverter;
 import com.cjf.http.converter.IConverter;
 import com.cjf.http.exception.OkHttpExceptionHelper;
 
-import kotlin.jvm.functions.Function1;
+import java.io.IOException;
+
+import kotlin.jvm.functions.Function2;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * <p>Title: OkHttpPlugins </p>
@@ -27,7 +31,9 @@ public final class OkHttpPlugins {
     // 返回值转换
     private static IConverter iConverter;
     // 解密方法
-    private static Function1<? super String, String> decoder;
+    private static Function2<? super Response, ? super String, String> decoder;
+    // 加密方法
+    private static Function2<? super Request, ? super String, String> encrypt;
 
     @NonNull
     public static IConverter getIConverter() {
@@ -71,29 +77,49 @@ public final class OkHttpPlugins {
     }
 
     //设置解码/解密器,可用于对Http返回的String 字符串解码/解密
-    public static void setResultDecoder(@Nullable Function1<? super String, String> decoder) {
+    public static void setResultDecoder(@Nullable Function2<? super Response, ? super String, String> decoder) {
         OkHttpPlugins.decoder = decoder;
     }
 
+    //设置加密/加密器,可用于对Http请求加密
+    public static void setResultEncrypt(@Nullable Function2<? super Request, ? super String, String> encrypt) {
+        OkHttpPlugins.encrypt = encrypt;
+    }
+
     /**
-     * 对字符串进行解码/解密
+     * 对字符串进行加密/加密
      *
      * @param source String字符串
      * @return 解码/解密后字符串
      */
     @NonNull
-    public static String onResultDecoder(@NonNull String source) {
-        Function1<? super String, String> f = decoder;
+    public static String onResultDecoder(@NonNull Response response, @NonNull String source) {
+        Function2<? super Response, ? super String, String> f = decoder;
         if (f != null) {
-            return apply(f, source);
+            return apply(f, response, source);
+        }
+        return source;
+    }
+
+    /**
+     * 对字符串进行解码/解密
+     *
+     * @param request 请求体
+     * @return 加密后的请求体
+     */
+    @NonNull
+    public static String onResultEncrypt(@NonNull Request request, @NonNull String source) throws IOException {
+        Function2<? super Request, ? super String, String> f = encrypt;
+        if (f != null) {
+            return apply(f, request, source);
         }
         return source;
     }
 
     @NonNull
-    private static <T, R> R apply(@NonNull Function1<T, R> f, @NonNull T t) {
+    private static <T1, T2, R> R apply(@NonNull Function2<T1, T2, R> f, @NonNull T1 t1, @NonNull T2 t2) {
         try {
-            return f.invoke(t);
+            return f.invoke(t1, t2);
         } catch (Throwable ex) {
             throw OkHttpExceptionHelper.wrapOrThrow(ex);
         }

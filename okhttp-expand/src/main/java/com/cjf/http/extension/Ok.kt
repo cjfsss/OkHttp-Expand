@@ -8,8 +8,11 @@ import com.cjf.http.encrypt.EncryptFunction
 import com.cjf.http.exception.OkHttpExceptionHelper
 import com.cjf.http.exception.OkHttpNullException
 import com.cjf.http.network.OnNetWorkChangedListener
-import okhttp3.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import okio.Buffer
 import java.io.IOException
 import java.lang.reflect.Type
@@ -64,19 +67,19 @@ fun convert(): IConverter {
     return OkHttpPlugins.getIConverter()
 }
 
-@Throws(IOException::class)
-fun <T> ResponseBody.convert(type: Class<T>, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {
-    use {
-        return convert().convert<T>(it, type, onResultDecoder)
-    }
-}
+//@Throws(IOException::class)
+//fun <T> ResponseBody.convert(type: Class<T>, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {
+//    use {
+//        return convert().convert<T>(it, type, onResultDecoder)
+//    }
+//}
 
-@Throws(IOException::class)
-fun <T> ResponseBody.convert(type: Type, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {
-    use {
-        return convert().convert<T>(it, type, onResultDecoder)
-    }
-}
+//@Throws(IOException::class)
+//fun <T> ResponseBody.convert(type: Type, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {
+//    use {
+//        return convert().convert<T>(it, type, onResultDecoder)
+//    }
+//}
 
 @Throws(IOException::class)
 fun <T> Response.convert(type: Class<T>, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {

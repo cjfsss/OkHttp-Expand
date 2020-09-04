@@ -14,7 +14,6 @@ import okhttp3.Response;
  */
 public class OkHttpJsonException extends OkHttpIOException {
 
-
     public OkHttpJsonException(String message, Response response) {
         super(message, response);
     }
