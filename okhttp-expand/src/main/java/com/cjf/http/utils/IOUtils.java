@@ -89,7 +89,16 @@ public class IOUtils {
      * @param request 请求体
      */
     @SuppressWarnings("CharsetObjectCanBeUsed")
+    @Nullable
     public static String readRequest(@NonNull Request request) throws IOException {
+        @NonNull final String method = request.method();//请求方式例如：get delete put post
+        if (TextUtils.equals(method, "GET")||TextUtils.equals(method, "HEAD")) {
+            String url = request.url().toString();
+            if (url.contains("?")) {
+                return request.url().toString().split("\\?")[0];
+            }
+            return null;
+        }
         @Nullable final RequestBody requestBody = request.body();
         if (requestBody == null) {
             throw new OkHttpRequestBodyNullException("RequestBody must be not null", request);
@@ -177,16 +186,23 @@ public class IOUtils {
         if (data == null) {
             return request;
         }
+        //构建新的requestBuilder
+        @NonNull final Request.Builder newRequestBuilder = request.newBuilder();
+        @NonNull final String method = request.method();//请求方式例如：get delete put post
+        if (TextUtils.equals(method, "GET")||TextUtils.equals(method, "HEAD")) {
+            String url = request.url().toString();
+            if (url.contains("?")) {
+                return newRequestBuilder.url(request.url().toString() + "?"+ toString(data)).build();
+            }
+            return null;
+        }
         @Nullable final RequestBody requestBody = request.body();
         if (requestBody == null) {
             throw new OkHttpEncryptException("requestBody must be not null", request);
         }
         try {
-            @NonNull final String method = request.method();//请求方式例如：get delete put post
             //构建新的请求体
             @NonNull final RequestBody newRequestBody = RequestBody.create(data, requestBody.contentType());
-            //构建新的requestBuilder
-            @NonNull final Request.Builder newRequestBuilder = request.newBuilder();
             //根据请求方式构建相应的请求
             return newRequestBuilder.method(method, newRequestBody).build();
         } catch (Exception e) {
