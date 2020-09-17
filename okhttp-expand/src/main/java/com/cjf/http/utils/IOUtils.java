@@ -38,8 +38,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -92,12 +94,8 @@ public class IOUtils {
     @Nullable
     public static String readRequest(@NonNull Request request) throws IOException {
         @NonNull final String method = request.method();//请求方式例如：get delete put post
-        if (TextUtils.equals(method, "GET")||TextUtils.equals(method, "HEAD")) {
-            String url = request.url().toString();
-            if (url.contains("?")) {
-                return request.url().toString().split("\\?")[0];
-            }
-            return null;
+        if (TextUtils.equals(method, "GET") || TextUtils.equals(method, "HEAD")) {
+            return request.url().query();
         }
         @Nullable final RequestBody requestBody = request.body();
         if (requestBody == null) {
@@ -120,24 +118,6 @@ public class IOUtils {
             throw new OkHttpEncryptException("Encrypt readRequest error", request, e);
         } finally {
             closeQuietly(buffer);
-        }
-    }
-
-    /**
-     * 将字符串写入请求体
-     *
-     * @param request 请求体
-     * @param data    数据
-     */
-    @SuppressWarnings("CharsetObjectCanBeUsed")
-    public static Request writeRequest(@NonNull Request request, @Nullable String data) throws IOException {
-        if (data == null) {
-            return request;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return writeRequest(request, data.getBytes(StandardCharsets.UTF_8));
-        } else {
-            return writeRequest(request, data.getBytes(Charset.forName("UTF-8")));
         }
     }
 
@@ -182,19 +162,19 @@ public class IOUtils {
      * @param request 请求体
      * @param data    数据
      */
-    public static Request writeRequest(@NonNull Request request, @Nullable byte[] data) throws IOException {
+    public static Request writeRequest(@NonNull Request request, @Nullable String data) throws IOException {
         if (data == null) {
             return request;
         }
         //构建新的requestBuilder
         @NonNull final Request.Builder newRequestBuilder = request.newBuilder();
         @NonNull final String method = request.method();//请求方式例如：get delete put post
-        if (TextUtils.equals(method, "GET")||TextUtils.equals(method, "HEAD")) {
+        if (TextUtils.equals(method, "GET") || TextUtils.equals(method, "HEAD")) {
             String url = request.url().toString();
             if (url.contains("?")) {
-                return newRequestBuilder.url(request.url().toString() + "?"+ toString(data)).build();
+                return newRequestBuilder.url(request.url().toString().split("\\?")[0] + "?" + data).build();
             }
-            return null;
+            return newRequestBuilder.url(request.url().toString() + "?" + data).build();
         }
         @Nullable final RequestBody requestBody = request.body();
         if (requestBody == null) {

@@ -4,19 +4,18 @@ package com.cjf.http.interceptor;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import com.cjf.http.OkHttpPlugins;
+import com.cjf.http.exception.OkHttpConnectException;
 import com.cjf.http.exception.OkHttpHostException;
 import com.cjf.http.exception.OkHttpNetworkError;
 import com.cjf.http.exception.OkHttpSocketClosedException;
 import com.cjf.http.exception.OkHttpUrlException;
 import com.cjf.http.network.Network;
-import com.cjf.http.utils.IOUtils;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -49,15 +48,20 @@ public class ConnectInterceptor implements Interceptor {
             throw new OkHttpNetworkError(String.format("Network Unavailable: %1$s.", request.url()), request);
         }
         try {
-            // 判断是否可以进行加密
-            @Nullable boolean isEncrypt = OkHttpPlugins.isInterceptorEncrypt();
-            if (isEncrypt) {
-                String body = IOUtils.readRequest(request);
-                String bodyEncrypt = OkHttpPlugins.onResultEncrypt(request, body);
-                Request requestEncrypt = IOUtils.writeRequest(request, bodyEncrypt);
-                return chain.proceed(requestEncrypt);
-            }
+            // 判断是否可以进行加密，废弃
+//            @Nullable boolean isEncrypt = OkHttpPlugins.isInterceptorEncrypt();
+//            if (isEncrypt) {
+//                String body = IOUtils.readRequest(request);
+//                if (TextUtils.isEmpty(body)) {
+//                    return chain.proceed(request);
+//                }
+//                String bodyEncrypt = OkHttpPlugins.onResultEncrypt(request, body);
+//                Request requestEncrypt = IOUtils.writeRequest(request, bodyEncrypt);
+//                return chain.proceed(requestEncrypt);
+//            }
             return chain.proceed(request);
+        } catch (ConnectException e) {
+            throw new OkHttpConnectException(String.format("url error exception: %1$s.", request.url()), request, e);
         } catch (SocketException e) {
             if (TextUtils.equals("Socket closed", e.getMessage())) {
                 throw new OkHttpSocketClosedException(String.format("Socket closed exception: %1$s.", request.url()),

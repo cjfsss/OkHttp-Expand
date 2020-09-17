@@ -67,20 +67,6 @@ fun convert(): IConverter {
     return OkHttpPlugins.getIConverter()
 }
 
-//@Throws(IOException::class)
-//fun <T> ResponseBody.convert(type: Class<T>, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {
-//    use {
-//        return convert().convert<T>(it, type, onResultDecoder)
-//    }
-//}
-
-//@Throws(IOException::class)
-//fun <T> ResponseBody.convert(type: Type, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {
-//    use {
-//        return convert().convert<T>(it, type, onResultDecoder)
-//    }
-//}
-
 @Throws(IOException::class)
 fun <T> Response.convert(type: Class<T>, onResultDecoder: Boolean = OkHttpPlugins.isInterceptorDecoder()): T {
     use {

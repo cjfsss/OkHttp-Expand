@@ -85,9 +85,18 @@ public class GsonUtil {
             gson = new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(String.class, new StringAdapter())
                                     .registerTypeAdapter(Integer.class, new IntegerDefault0Adapter())
                                     .registerTypeAdapter(Double.class, new DoubleDefault0Adapter())
-                                    .registerTypeAdapter(Long.class, new LongDefault0Adapter()).create();
+                                    .registerTypeAdapter(Long.class, new LongDefault0Adapter())
+                                    .setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         }
         return gson;
+    }
+
+    public static GsonBuilder buildGson(String formatDate) {
+        return new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(String.class, new StringAdapter())
+                                .registerTypeAdapter(Integer.class, new IntegerDefault0Adapter())
+                                .registerTypeAdapter(Double.class, new DoubleDefault0Adapter())
+                                .registerTypeAdapter(Long.class, new LongDefault0Adapter())
+                                .setDateFormat(formatDate);
     }
 
     private static class StringAdapter implements JsonSerializer<String>,

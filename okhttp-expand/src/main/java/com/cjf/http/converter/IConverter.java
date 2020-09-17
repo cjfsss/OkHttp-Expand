@@ -33,42 +33,6 @@ public interface IConverter {
     @NonNull
     <T> T convert(@NonNull String source, @NonNull Type type) throws IOException;
 
-//    /**
-//     * 请求结束后拿到 ResponseBody 转 对象
-//     *
-//     * @param source            String
-//     * @param type            对象类型
-//     * @param onResultDecoder 是否需要对结果进行解码/解密，可根据此字段判断,
-//     * @param <T>             T
-//     * @return T
-//     * @throws IOException 转换失败异常
-//     */
-//    @NonNull
-//    default <T> T convert(@NonNull String source, @NonNull Type type, boolean onResultDecoder) throws IOException {
-//        if (onResultDecoder) {
-//            source = decoder(response, source);
-//        }
-//        return convert(source, type);
-//    }
-//
-//    /**
-//     * 请求结束后拿到 ResponseBody 转 对象
-//     *
-//     * @param body            ResponseBody
-//     * @param type            对象类型
-//     * @param onResultDecoder 是否需要对结果进行解码/解密，可根据此字段判断,
-//     * @param <T>             T
-//     * @return T
-//     * @throws IOException 转换失败异常
-//     */
-//    @NonNull
-//    default <T> T convert(@NonNull ResponseBody body, @NonNull Type type, boolean onResultDecoder) throws IOException {
-//        String source = body.string();
-//        if (onResultDecoder) {
-//            source = decoder(response, source);
-//        }
-//        return convert(source, type);
-//    }
     /**
      * 请求结束后拿到 Response 转 对象
      *

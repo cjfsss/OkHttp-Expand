@@ -73,6 +73,9 @@ public class OkHttpExceptionHelper {
         } else if (throwable instanceof SocketTimeoutException) {
             // Socket timeout exception
             return "服务器请求超时，请稍后再试！";
+        } else if (throwable instanceof OkHttpConnectException) {
+            // Socket code exception
+            return "服务器连接异常，请稍后再试！";
         } else if (throwable instanceof OkHttpResponseBodyNullException) {
             // Socket code exception
             return "服务器连接异常，请稍后再试！";
