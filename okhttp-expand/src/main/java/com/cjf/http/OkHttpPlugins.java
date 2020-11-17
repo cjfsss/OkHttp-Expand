@@ -87,7 +87,7 @@ public final class OkHttpPlugins {
     }
 
     /**
-     * 对字符串进行加密/加密
+     *  对字符串进行解码/解密
      *
      * @param source String字符串
      * @return 解码/解密后字符串
@@ -102,7 +102,7 @@ public final class OkHttpPlugins {
     }
 
     /**
-     * 对字符串进行解码/解密
+     * 对字符串进行加密/加密
      *
      * @param request 请求体
      * @return 加密后的请求体

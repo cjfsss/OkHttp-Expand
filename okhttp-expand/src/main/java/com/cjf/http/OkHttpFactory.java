@@ -19,6 +19,7 @@ import com.cjf.http.network.BroadcastNetwork;
 import com.cjf.http.network.Network;
 import com.cjf.http.network.NetworkType;
 import com.cjf.http.network.OnNetWorkChangedListener;
+import com.cjf.http.ssl.HttpsUtils;
 import com.cjf.http.ssl.SSLSocketFactoryImpl;
 import com.cjf.http.ssl.X509TrustManagerImpl;
 
@@ -172,11 +173,17 @@ public final class OkHttpFactory implements Network,
             builder.addInterceptor(encryptInterceptor);
             mEncryptFunction = null;
         }
-        @NonNull final X509TrustManager trustAllCert = new X509TrustManagerImpl();
-        @NonNull final SSLSocketFactory sslSocketFactory = new SSLSocketFactoryImpl(trustAllCert);
+//        @NonNull final X509TrustManager trustAllCert = new X509TrustManagerImpl();
+//        @NonNull final SSLSocketFactory sslSocketFactory = new SSLSocketFactoryImpl(trustAllCert);
+//        return builder.addNetworkInterceptor(getConnectInterceptor()).connectTimeout(10, TimeUnit.SECONDS)
+//                      .readTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS)
+//                      .sslSocketFactory(sslSocketFactory, trustAllCert) //添加信任证书
+//                      .hostnameVerifier((hostname, session) -> true) //忽略host验证
+//                      .retryOnConnectionFailure(false);
+        HttpsUtils.SSLParams sslSocketFactory = HttpsUtils.getSslSocketFactory();
         return builder.addNetworkInterceptor(getConnectInterceptor()).connectTimeout(10, TimeUnit.SECONDS)
                       .readTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS)
-                      .sslSocketFactory(sslSocketFactory, trustAllCert) //添加信任证书
+                      .sslSocketFactory(sslSocketFactory.sSLSocketFactory, sslSocketFactory.trustManager) //添加信任证书
                       .hostnameVerifier((hostname, session) -> true) //忽略host验证
                       .retryOnConnectionFailure(false);
     }
